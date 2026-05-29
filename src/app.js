@@ -59,8 +59,22 @@ app.get('/cron/sync-full', verifyCron, async (req, res) => {
 
 app.get('/cron/sync-standings', verifyCron, async (req, res) => {
   const { syncStandings } = require('./services/footballData');
-  await syncStandings().catch(console.error);
-  res.json({ ok: true });
+  try {
+    await syncStandings();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/cron/debug-standings', verifyCron, async (req, res) => {
+  const API_KEY = process.env.FOOTBALL_DATA_API_KEY;
+  const response = await fetch('https://api.football-data.org/v4/competitions/WC/standings', {
+    headers: { 'X-Auth-Token': API_KEY }
+  }).catch(e => null);
+  if (!response) return res.status(500).json({ error: 'Cannot reach API' });
+  const data = await response.json();
+  res.json({ status: response.status, standings_count: data.standings?.length, first: data.standings?.[0], error: data.message });
 });
 
 app.get('/cron/sync-today', verifyCron, async (req, res) => {
