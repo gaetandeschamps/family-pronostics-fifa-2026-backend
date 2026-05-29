@@ -26,23 +26,6 @@ router.post('/sync-matches', async (req, res) => {
   }
 });
 
-router.get('/api-status', async (req, res) => {
-  const API_KEY = process.env.FOOTBALL_DATA_API_KEY;
-  if (!API_KEY) return res.status(500).json({ error: 'FOOTBALL_DATA_API_KEY not set' });
-
-  const response = await fetch('https://api.football-data.org/v4/competitions/WC', {
-    headers: { 'X-Auth-Token': API_KEY }
-  }).catch(e => null);
-
-  if (!response) return res.status(500).json({ error: 'Could not reach football-data.org' });
-
-  res.json({
-    status: response.status === 200 ? 'ok' : 'error',
-    requests_available_minute: response.headers.get('X-Requests-Available-Minute'),
-    requests_counter_reset: response.headers.get('X-RequestCounter-Reset'),
-    plan: response.headers.get('X-Auth-Token-Scope') || 'unknown',
-  });
-});
 
 router.put('/matches/:id/score', async (req, res) => {
   const { home_score, away_score } = req.body;
