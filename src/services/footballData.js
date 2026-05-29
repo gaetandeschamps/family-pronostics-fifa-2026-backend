@@ -34,12 +34,19 @@ async function syncFullCalendar() {
   await syncStandings();
 }
 
+function normalizeGroupName(group) {
+  if (!group) return group;
+  // "Group A" → "GROUP_A", "GROUP_A" → "GROUP_A"
+  const m = group.match(/([A-Z])$/i);
+  return m ? `GROUP_${m[1].toUpperCase()}` : group.toUpperCase().replace(/\s+/g, '_');
+}
+
 async function syncStandings() {
   const data = await fetchFootball('/competitions/WC/standings').catch(() => null);
   if (!data?.standings) return;
 
   for (const standing of data.standings) {
-    const group = standing.group || standing.stage;
+    const group = normalizeGroupName(standing.group || standing.stage);
     for (const entry of standing.table ?? []) {
       await supabase.schema('app_pronostics').from('group_standings').upsert({
         group_name: group,
