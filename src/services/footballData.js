@@ -31,6 +31,32 @@ async function syncFullCalendar() {
     }, { onConflict: 'external_id' });
   }
   console.log(`Synced ${data.matches?.length ?? 0} matches`);
+  await syncStandings();
+}
+
+async function syncStandings() {
+  const data = await fetchFootball('/competitions/WC/standings').catch(() => null);
+  if (!data?.standings) return;
+
+  for (const standing of data.standings) {
+    const group = standing.group || standing.stage;
+    for (const entry of standing.table ?? []) {
+      await supabase.schema('app_pronostics').from('group_standings').upsert({
+        group_name: group,
+        team_name: entry.team.name,
+        team_code: entry.team.tla,
+        played: entry.playedGames,
+        won: entry.won,
+        drawn: entry.draw,
+        lost: entry.lost,
+        goals_for: entry.goalsFor,
+        goals_against: entry.goalsAgainst,
+        points: entry.points,
+        last_updated: new Date().toISOString(),
+      }, { onConflict: 'group_name,team_code' });
+    }
+  }
+  console.log('Standings synced');
 }
 
 async function syncLiveMatches() {
@@ -72,4 +98,4 @@ async function recalculateEarnings(match) {
   }
 }
 
-module.exports = { syncFullCalendar, syncLiveMatches, syncTodayMatches };
+module.exports = { syncFullCalendar, syncLiveMatches, syncTodayMatches, syncStandings };
