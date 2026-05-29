@@ -20,6 +20,22 @@ router.get('/', authMiddleware, async (req, res) => {
   res.json({ players: rankings, special_rules });
 });
 
+// Pronostics terminés d'un joueur spécifique (visibles seulement après que le match a commencé)
+router.get('/player/:playerId/history', authMiddleware, async (req, res) => {
+  const { data, error } = await supabase
+    .schema('app_pronostics').from('pronostics')
+    .select('*, match:match_id(*)')
+    .eq('user_id', req.params.playerId)
+    .order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+
+  // Ne retourner que les matchs qui ont commencé (visibilité respectée)
+  const visible = (data ?? []).filter(p =>
+    ['IN_PLAY', 'PAUSED', 'FINISHED'].includes(p.match?.status)
+  );
+  res.json(visible);
+});
+
 router.get('/standings', authMiddleware, async (req, res) => {
   const { data, error } = await supabase
     .schema('app_pronostics').from('group_standings').select('*')
