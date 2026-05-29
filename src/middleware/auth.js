@@ -13,7 +13,7 @@ async function authMiddleware(req, res, next) {
   if (error || !user) return res.status(401).json({ error: 'Invalid token' });
 
   const { data: profile, error: profileError } = await supabase
-    .schema('fifa2026')
+    .schema('app_pronostics')
     .from('users')
     .select('*')
     .eq('supabase_auth_id', user.id)

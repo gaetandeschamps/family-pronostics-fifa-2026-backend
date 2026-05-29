@@ -9,13 +9,13 @@ async function sendDailyReminders() {
   const start = new Date(tomorrow); start.setUTCHours(0, 0, 0, 0);
   const end = new Date(tomorrow); end.setUTCHours(23, 59, 59, 999);
 
-  const { data: matches } = await supabase.schema('fifa2026').from('matches').select('*')
+  const { data: matches } = await supabase.schema('app_pronostics').from('matches').select('*')
     .gte('kickoff_utc', start.toISOString()).lte('kickoff_utc', end.toISOString()).eq('status', 'SCHEDULED');
   if (!matches?.length) return;
 
-  const { data: players } = await supabase.schema('fifa2026').from('users').select('*').eq('role', 'player');
+  const { data: players } = await supabase.schema('app_pronostics').from('users').select('*').eq('role', 'player');
   for (const player of players ?? []) {
-    const { data: done } = await supabase.schema('fifa2026').from('pronostics')
+    const { data: done } = await supabase.schema('app_pronostics').from('pronostics')
       .select('match_id').eq('user_id', player.id).in('match_id', matches.map(m => m.id));
     const doneIds = new Set(done?.map(p => p.match_id));
     const missing = matches.filter(m => !doneIds.has(m.id));

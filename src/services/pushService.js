@@ -15,13 +15,13 @@ async function sendPushNotification(user, payload) {
     await webpush.sendNotification(user.push_subscription, JSON.stringify(payload));
   } catch (err) {
     if (err.statusCode === 410) {
-      await supabase.schema('fifa2026').from('users').update({ push_subscription: null }).eq('id', user.id);
+      await supabase.schema('app_pronostics').from('users').update({ push_subscription: null }).eq('id', user.id);
     }
   }
 }
 
 async function broadcastPush(userIds, payload) {
-  const { data: users } = await supabase.schema('fifa2026').from('users')
+  const { data: users } = await supabase.schema('app_pronostics').from('users')
     .select('id, push_subscription').in('id', userIds).not('push_subscription', 'is', null);
   for (const user of users ?? []) await sendPushNotification(user, payload);
 }

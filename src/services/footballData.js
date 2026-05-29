@@ -20,7 +20,7 @@ function mapStatus(s) {
 async function syncFullCalendar() {
   const data = await fetchFootball('/competitions/WC/matches');
   for (const m of data.matches ?? []) {
-    await supabase.schema('fifa2026').from('matches').upsert({
+    await supabase.schema('app_pronostics').from('matches').upsert({
       external_id: m.id, stage: m.stage, group_name: m.group || null,
       match_day: m.matchday || null,
       home_team_name: m.homeTeam.name || 'TBD', home_team_code: m.homeTeam.tla || 'TBD',
@@ -37,7 +37,7 @@ async function syncLiveMatches() {
   const data = await fetchFootball('/competitions/WC/matches?status=LIVE').catch(() => null);
   if (!data) return;
   for (const m of data.matches ?? []) {
-    const { data: updated } = await supabase.schema('fifa2026').from('matches').update({
+    const { data: updated } = await supabase.schema('app_pronostics').from('matches').update({
       status: mapStatus(m.status),
       home_score: m.score?.fullTime?.home ?? null,
       away_score: m.score?.fullTime?.away ?? null,
@@ -52,7 +52,7 @@ async function syncTodayMatches() {
   const data = await fetchFootball(`/competitions/WC/matches?dateFrom=${today}&dateTo=${today}`).catch(() => null);
   if (!data) return;
   for (const m of data.matches ?? []) {
-    await supabase.schema('fifa2026').from('matches').update({
+    await supabase.schema('app_pronostics').from('matches').update({
       status: mapStatus(m.status),
       home_score: m.score?.fullTime?.home ?? null,
       away_score: m.score?.fullTime?.away ?? null,
@@ -64,10 +64,10 @@ async function syncTodayMatches() {
 async function recalculateEarnings(match) {
   const { calculateEarnings } = require('../utils/earnings');
   const { data: pronostics } = await supabase
-    .schema('fifa2026').from('pronostics').select('*').eq('match_id', match.id);
+    .schema('app_pronostics').from('pronostics').select('*').eq('match_id', match.id);
   for (const p of pronostics ?? []) {
     const earnings = calculateEarnings(p, match);
-    await supabase.schema('fifa2026').from('pronostics')
+    await supabase.schema('app_pronostics').from('pronostics')
       .update({ earnings, is_locked: true }).eq('id', p.id);
   }
 }

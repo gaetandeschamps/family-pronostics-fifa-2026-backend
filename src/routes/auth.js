@@ -9,7 +9,7 @@ router.post('/verify', async (req, res) => {
   const { data: { user }, error } = await supabase.auth.getUser(token);
   if (error || !user) return res.status(401).json({ error: 'Invalid token' });
   const { data: profile } = await supabase
-    .schema('fifa2026').from('users').select('*')
+    .schema('app_pronostics').from('users').select('*')
     .eq('supabase_auth_id', user.id).single();
   res.json({ user: profile });
 });
@@ -24,7 +24,7 @@ router.put('/preferences', authMiddleware, async (req, res) => {
   if (dark_mode !== undefined) updates.dark_mode = dark_mode;
   if (push_subscription !== undefined) updates.push_subscription = push_subscription;
   const { data, error } = await supabase
-    .schema('fifa2026').from('users').update(updates)
+    .schema('app_pronostics').from('users').update(updates)
     .eq('id', req.user.id).select().single();
   if (error) return res.status(400).json({ error: error.message });
   res.json(data);

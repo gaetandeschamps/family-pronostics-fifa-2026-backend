@@ -1,8 +1,8 @@
 -- Création du schéma
-CREATE SCHEMA IF NOT EXISTS fifa2026;
+CREATE SCHEMA IF NOT EXISTS app_pronostics;
 
 -- Table users
-CREATE TABLE IF NOT EXISTS fifa2026.users (
+CREATE TABLE IF NOT EXISTS app_pronostics.users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   supabase_auth_id UUID UNIQUE NOT NULL,
   email TEXT UNIQUE NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS fifa2026.users (
 );
 
 -- Table matches
-CREATE TABLE IF NOT EXISTS fifa2026.matches (
+CREATE TABLE IF NOT EXISTS app_pronostics.matches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   external_id INTEGER UNIQUE NOT NULL,
   stage TEXT NOT NULL,
@@ -38,10 +38,10 @@ CREATE TABLE IF NOT EXISTS fifa2026.matches (
 );
 
 -- Table pronostics
-CREATE TABLE IF NOT EXISTS fifa2026.pronostics (
+CREATE TABLE IF NOT EXISTS app_pronostics.pronostics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES fifa2026.users(id) ON DELETE CASCADE,
-  match_id UUID NOT NULL REFERENCES fifa2026.matches(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES app_pronostics.users(id) ON DELETE CASCADE,
+  match_id UUID NOT NULL REFERENCES app_pronostics.matches(id) ON DELETE CASCADE,
   home_score_prediction INTEGER NOT NULL CHECK (home_score_prediction >= 0),
   away_score_prediction INTEGER NOT NULL CHECK (away_score_prediction >= 0),
   predicted_outcome TEXT GENERATED ALWAYS AS (
@@ -59,9 +59,9 @@ CREATE TABLE IF NOT EXISTS fifa2026.pronostics (
 );
 
 -- Table special_rules
-CREATE TABLE IF NOT EXISTS fifa2026.special_rules (
+CREATE TABLE IF NOT EXISTS app_pronostics.special_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  match_id UUID REFERENCES fifa2026.matches(id) ON DELETE SET NULL,
+  match_id UUID REFERENCES app_pronostics.matches(id) ON DELETE SET NULL,
   title TEXT NOT NULL,
   description TEXT,
   reward_amount NUMERIC(5,2) NOT NULL,
@@ -71,10 +71,10 @@ CREATE TABLE IF NOT EXISTS fifa2026.special_rules (
 );
 
 -- Table special_rule_predictions
-CREATE TABLE IF NOT EXISTS fifa2026.special_rule_predictions (
+CREATE TABLE IF NOT EXISTS app_pronostics.special_rule_predictions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  special_rule_id UUID NOT NULL REFERENCES fifa2026.special_rules(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES fifa2026.users(id) ON DELETE CASCADE,
+  special_rule_id UUID NOT NULL REFERENCES app_pronostics.special_rules(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES app_pronostics.users(id) ON DELETE CASCADE,
   prediction TEXT NOT NULL,
   is_correct BOOLEAN,
   earnings NUMERIC(5,2) DEFAULT 0,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS fifa2026.special_rule_predictions (
 );
 
 -- Table group_standings
-CREATE TABLE IF NOT EXISTS fifa2026.group_standings (
+CREATE TABLE IF NOT EXISTS app_pronostics.group_standings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   group_name TEXT NOT NULL,
   team_name TEXT NOT NULL,
@@ -100,13 +100,13 @@ CREATE TABLE IF NOT EXISTS fifa2026.group_standings (
 );
 
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_matches_kickoff ON fifa2026.matches(kickoff_utc);
-CREATE INDEX IF NOT EXISTS idx_matches_status ON fifa2026.matches(status);
-CREATE INDEX IF NOT EXISTS idx_pronostics_user ON fifa2026.pronostics(user_id);
-CREATE INDEX IF NOT EXISTS idx_pronostics_match ON fifa2026.pronostics(match_id);
+CREATE INDEX IF NOT EXISTS idx_matches_kickoff ON app_pronostics.matches(kickoff_utc);
+CREATE INDEX IF NOT EXISTS idx_matches_status ON app_pronostics.matches(status);
+CREATE INDEX IF NOT EXISTS idx_pronostics_user ON app_pronostics.pronostics(user_id);
+CREATE INDEX IF NOT EXISTS idx_pronostics_match ON app_pronostics.pronostics(match_id);
 
 -- Seed règles spéciales
-INSERT INTO fifa2026.special_rules (title, description, reward_amount, rule_type, is_locked)
+INSERT INTO app_pronostics.special_rules (title, description, reward_amount, rule_type, is_locked)
 VALUES
   ('Meilleur buteur', 'Joueur qui marque le plus de buts dans la compétition', 10.00, 'global_top_scorer', false),
   ('Équipe championne', 'Équipe qui remporte la Coupe du Monde 2026', 10.00, 'global_champion', false)

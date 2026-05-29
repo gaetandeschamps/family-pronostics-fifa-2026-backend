@@ -10,7 +10,7 @@ router.use(authMiddleware, requireAdmin);
 
 router.get('/pronostics', async (req, res) => {
   const { data, error } = await supabase
-    .schema('fifa2026').from('pronostics')
+    .schema('app_pronostics').from('pronostics')
     .select('*, user:user_id(name, email), match:match_id(*)')
     .order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
@@ -32,15 +32,15 @@ router.put('/matches/:id/score', async (req, res) => {
     return res.status(400).json({ error: 'Missing scores' });
   }
   const { data: match, error } = await supabase
-    .schema('fifa2026').from('matches')
+    .schema('app_pronostics').from('matches')
     .update({ home_score, away_score, status: 'FINISHED' })
     .eq('id', req.params.id).select().single();
   if (error) return res.status(400).json({ error: error.message });
   const { data: pronostics } = await supabase
-    .schema('fifa2026').from('pronostics').select('*').eq('match_id', req.params.id);
+    .schema('app_pronostics').from('pronostics').select('*').eq('match_id', req.params.id);
   for (const p of pronostics ?? []) {
     const earnings = calculateEarnings(p, match);
-    await supabase.schema('fifa2026').from('pronostics')
+    await supabase.schema('app_pronostics').from('pronostics')
       .update({ earnings, is_locked: true }).eq('id', p.id);
   }
   res.json(match);
