@@ -57,6 +57,12 @@ app.get('/cron/sync-full', verifyCron, async (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/cron/sync-standings', verifyCron, async (req, res) => {
+  const { syncStandings } = require('./services/footballData');
+  await syncStandings().catch(console.error);
+  res.json({ ok: true });
+});
+
 app.get('/cron/sync-today', verifyCron, async (req, res) => {
   const { syncTodayMatches } = require('./services/footballData');
   await syncTodayMatches().catch(console.error);
