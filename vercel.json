@@ -1,0 +1,7 @@
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }],
+  "crons": [
+    { "path": "/cron/sync-full", "schedule": "0 3 * * *" },
+    { "path": "/cron/email-reminder", "schedule": "0 20 * * *" }
+  ]
+}

@@ -37,4 +37,4 @@ function startEmailCron() {
   console.log('Email reminder cron started');
 }
 
-module.exports = { startEmailCron };
+module.exports = { startEmailCron, sendDailyReminders };
