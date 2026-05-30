@@ -9,10 +9,14 @@ router.get('/', authMiddleware, async (req, res) => {
   const rankings = await Promise.all((players ?? []).map(async player => {
     const { data: pronostics } = await supabase
       .schema('app_pronostics').from('pronostics').select('*').eq('user_id', player.id);
+    const { count: finished_matches } = await supabase
+      .schema('app_pronostics').from('matches').select('*', { count: 'exact', head: true }).eq('status', 'FINISHED');
     const total_earnings = pronostics?.reduce((sum, p) => sum + (Number(p.earnings) || 0), 0) ?? 0;
     const correct_scores = pronostics?.filter(p => Number(p.earnings) >= 3).length ?? 0;
     const correct_outcomes = pronostics?.filter(p => Number(p.earnings) >= 1).length ?? 0;
-    return { ...player, total_earnings, correct_scores, correct_outcomes,
+    const predicted_count = pronostics?.length ?? 0;
+    const missed = Math.max(0, (finished_matches ?? 0) - predicted_count);
+    return { ...player, total_earnings, correct_scores, correct_outcomes, missed, predicted_count,
       total_points: correct_scores * 3 + (correct_outcomes - correct_scores) };
   }));
   rankings.sort((a, b) => b.total_earnings - a.total_earnings);
