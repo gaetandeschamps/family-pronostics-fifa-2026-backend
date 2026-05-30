@@ -5,7 +5,7 @@ const { authMiddleware } = require('../middleware/auth');
 
 router.get('/', authMiddleware, async (req, res) => {
   const { data: players } = await supabase
-    .schema('app_pronostics').from('users').select('id, name, email').eq('role', 'player');
+    .schema('app_pronostics').from('users').select('id, name, email').in('role', ['player', 'admin']);
   const rankings = await Promise.all((players ?? []).map(async player => {
     const { data: pronostics } = await supabase
       .schema('app_pronostics').from('pronostics').select('*').eq('user_id', player.id);
