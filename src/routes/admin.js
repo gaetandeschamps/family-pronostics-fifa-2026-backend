@@ -26,6 +26,16 @@ router.post('/sync-matches', async (req, res) => {
   }
 });
 
+router.get('/debug-match-api', async (req, res) => {
+  const API_KEY = process.env.FOOTBALL_DATA_API_KEY;
+  const r = await fetch('https://api.football-data.org/v4/competitions/WC/matches?limit=1', {
+    headers: { 'X-Auth-Token': API_KEY }
+  });
+  const data = await r.json();
+  const first = data.matches?.[0];
+  res.json({ raw_match: first });
+});
+
 
 router.put('/matches/:id/score', async (req, res) => {
   const { home_score, away_score } = req.body;
